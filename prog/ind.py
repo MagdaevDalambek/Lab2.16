@@ -1,141 +1,143 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import json
+import sys
+
 # Для своего варианта лабораторной работы 2.8 необходимо дополнительно реализовать
 # сохранение и чтение данных из файла формата JSON. Необходимо также проследить за тем,
 # чтобы файлы генерируемый этой программой не попадали в репозиторий лабораторнойработы.
 
-import json
-import sys
 
+def add(students):
+    # Запросить данные о студенте
+    name = input("Фамилия и инициалы? ")
+    group = int(input("Номер группы? "))
+    progress = [
+        int(input("Оценка за 1 дисциплину - ")),
+        int(input("Оценка за 2 дисциплину - ")),
+        int(input("Оценка за 3 дисциплину - ")),
+        int(input("Оценка за 4 дисциплину - ")),
+        int(input("Оценка за 5 дисциплину - "))
+    ]
 
-def get_route():
-    """
-    Запросить данные о маршруте
-    """
-    start = input("Название начального пункта маршрута? ")
-    finish = input("Название конечного пункта маршрута? ")
-    number = int(input("Номер маршрута? "))
-
-    return {
-        'start': start,
-        'finish': finish,
-        'number': number,
+    student = {
+        'name': name,
+        'group': group,
+        'mark': progress
     }
 
+    students.append(student)
+    if len(students) > 1:
+        students.sort(key=lambda item: item.get('group')[::-1])
+    return students
 
-def display_route(routes):
-    """
-    Отобразить список маршрутов
-    """
-    if routes:
-        line = '+-{}-+-{}-+-{}-+-{}-+'.format(
-            '-' * 4,
-            '-' * 30,
-            '-' * 20,
-            '-' * 14
+
+def list(students):
+    if not students:
+        print("Список студентов пуст.")
+        return
+
+    # Заголовок таблицы
+    line = '+-{}-+-{}-+-{}-+-{}-+'.format(
+        '-' * 4,
+        '-' * 30,
+        '-' * 20,
+        '-' * 15
+    )
+    print(line)
+    print(
+        '| {:^4} | {:^30} | {:^20} | {:^15} |'.format(
+            "№",
+            "Ф.И.О.",
+            "Группа",
+            "Успеваемость"
         )
-        print(line)
+    )
+    print(line)
+
+    # Вывести данные о всех студентах
+    for idx, student in enumerate(students, 1):
+        ma = student.get('mark', '')
         print(
-            '| {:^4} | {:^30} | {:^20} | {:^14} |'.format(
-                "№",
-                "Начальный пункт",
-                "Конечный пункт",
-                "Номер маршрута"
+            '| {:^4} | {:<30} | {:<20} | {},{},{},{},{:<7} |'.format(
+                idx,
+                student.get('name', ''),
+                student.get('group', ''),
+                ma[0],
+                ma[1],
+                ma[2],
+                ma[3],
+                ma[4]
             )
         )
         print(line)
 
-        for idx, worker in enumerate(routes, 1):
+
+def select(students):
+    # Инициализировать счетчик
+    count = 0
+    # Проверить сведения студентов из списка
+    for student in students:
+        mark = student.get('mark', '')
+        if sum(mark) / max(len(mark), 1) >= 4.0:
             print(
-                '| {:>4} | {:<30} | {:<20} | {:>14} |'.format(
-                    idx,
-                    worker.get('start', ''),
-                    worker.get('finish', ''),
-                    worker.get('number', 0)
-                )
+                '{:>4} {}'.format('-', student.get('name', '')),
+                '{:>1} №{}'.format('группа', student.get('group', ''))
             )
-        print(line)
-    else:
-        print("Список маршрутов пуст")
+            count += 1
+    if count == 0:
+        print("Студенты с баллом 4.0 и выше не найдены.")
 
 
-def select_route(routes, period):
-    """
-    Выбрать маршрут
-    """
-    result = []
-    for employee in routes:
-        if employee.get('number') == period:
-            result.append(employee)
-
-    return result
+def help():
+    print("Список команд:\n")
+    print("add - добавить студента;")
+    print("list - вывести список студентов;")
+    print("select - запросить студентов с баллом выше 4.0;")
+    print("save - сохранить список студентов;")
+    print("load - загрузить список студентов;")
+    print("exit - завершить работу с программой.")
 
 
-def save_routes(file_name, staff):
-    """
-    Сохранить данные в файл JSON
-    """
+def save_students(file_name, students):
     with open(file_name, "w", encoding="utf-8") as fout:
-        json.dump(staff, fout, ensure_ascii=False, indent=4)
+        json.dump(students, fout, ensure_ascii=False, indent=4)
 
 
-def load_routes(file_name):
-    """
-    Загрузить данные из файла JSON
-    """
+def load_students(file_name):
     with open(file_name, "r", encoding="utf-8") as fin:
         return json.load(fin)
 
 
 def main():
-    """
-    Главная функция программы
-    """
-    routes = []
+    # Список студентов
+    students = []
 
     while True:
+        # Запросить команду из терминала
         command = input(">>> ").lower()
+        # Выполнить действие в соответствие с командой
         if command == 'exit':
             break
-
         elif command == 'add':
-            route = get_route()
-            routes.append(route)
-            if len(routes) > 1:
-                routes.sort(key=lambda item: item.get('number', ''))
-
+            students = add(students)
         elif command == 'list':
-            display_route(routes)
-
+            list(students)
         elif command.startswith('select'):
-            parts = command.split(' ', maxsplit=1)
-            period = int(parts[1])
-
-            selected = select_route(routes, period)
-            display_route(selected)
-
+            select(students)
         elif command.startswith("save "):
             parts = command.split(maxsplit=1)
             file_name = parts[1]
-            save_routes(file_name, routes)
-
+            save_students(file_name, students)
         elif command.startswith("load "):
             parts = command.split(maxsplit=1)
             file_name = parts[1]
-            routes = load_routes(file_name)
-
+            students = load_students(file_name)
         elif command == 'help':
-            print("Список команд:\n")
-            print("add - добавить маршрут;")
-            print("list - вывести список маршрутов;")
-            print("select <номер маршрута> - запросить данные о маршруте;")
-            print("help - отобразить справку;")
-            print("load - загрузить данные из файла;")
-            print("save - сохранить данные в файл;")
-            print("exit - завершить работу с программой.")
+            help()
         else:
-            print(f"Неизвестная команда {command}", file=sys.stderr)
+            print("Неизвестная команда {command}", file=sys.stderr)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,35 @@
+[
+    {
+        "name": "Ivanov I.I.",
+        "group": 2,
+        "mark": [
+            4,
+            5,
+            4,
+            3,
+            5
+        ]
+    },
+    {
+        "name": "Magdaev D.M.",
+        "group": 4,
+        "mark": [
+            3,
+            5,
+            4,
+            3,
+            4
+        ]
+    },
+    {
+        "name": "Motovilov V.B.",
+        "group": 5,
+        "mark": [
+            4,
+            3,
+            4,
+            5,
+            3
+        ]
+    }
+]
